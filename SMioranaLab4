@@ -1,0 +1,67 @@
+# goal is to calculate and show	   (n!)/[(n-r)!r!]
+# but if you try to div by zero, get wrecked
+.data
+umno: .asciiz "\ncut that out; n should be bigger than r\n"
+
+.text
+start:
+li $v0, 5 # get n
+syscall
+move $s0, $v0 #s0 = n
+li $v0, 5 # get r
+syscall
+move $s1, $v0 #s1 = r
+blt $s0, $s1, nono
+
+#let's get n! !!
+move $a0, $s0
+jal factorial
+move $t3, $v0 #t3 = n!
+#get r!
+move $a0, $s1
+jal factorial
+move $t2, $v0 #t2 = r! 
+#get (n-r)!
+sub $a0, $s0, $s1
+jal factorial
+move $t1, $v0 #t1 = (n-r)! 
+#put it all together
+mul $a0, $t1, $t2 #(n-r)!*r!
+div $t3, $t3, $a0 #the kit and caboodle
+#print that bihh
+li $v0, 1
+move $a0, $t3
+syscall
+#were done
+li $v0, 10
+syscall
+
+#compute n!
+factorial:
+addi $sp, $sp, -8 #8 bytes on that stack, bitte
+sw $a0, 4($sp)
+sw $ra, 0($sp)
+addi $t0, $0, 2
+slt $t0, $a0, $t0 #if n < 2, t0 = 1
+beq $t0, $0, one #n <=1, so print out one
+addi $v0, $0, 1
+addi $sp, $sp, 8 #clear out that stack space, bih
+jr $ra #jump back to main
+one:
+addi $a0, $a0, -1 #n = n-1
+jal factorial
+lw $ra, 0($sp) #restore return address
+lw $a0, 4($sp) #restore $a0
+addi $sp, $sp, 8 #claer that stack space, bih
+mul $v0, $a0, $v0 # factorial(n-1)
+jr $ra #back to maine (not Maine)
+
+nono:
+la $a0, umno # says gimme a number
+li $v0, 4
+syscall
+j start
+
+
+
+
